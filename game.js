@@ -9015,33 +9015,34 @@ async function initializeCurrency() {
 }
 initializeCurrency();
 
+
 const skinsData = {
   cartman: {
     name: 'Eric Cartman',
     price: 100,
     type: 'buy',
-    model: '/playstation_1_-_south_park_-_eric_cartman.glb',
+    model: '/Cartman-Royale/playstation_1_-_south_park_-_eric_cartman.glb',
     owned: true
   },
   noob: {
     name: 'Roblox Noob',
     price: 200,
     type: 'buy',
-    model: '/r6_roblox_noob_animated.glb',
+    model: '/Cartman-Royale/r6_roblox_noob_animated.glb',
     owned: false
   },
   floppa: {
     name: 'Floppa',
     price: 250,
     type: 'buy',
-    model: '/floppa_cube_model.glb',
+    model: '/Cartman-Royale/floppa_cube_model.glb',
     owned: false
   },
   tung: {
     name: 'Tung Tung Tung Sahur',
     price: 400,
     type: 'buy',
-    model: '/tung_tung_tung_sahur.glb',
+    model: '/Cartman-Royale/tung_tung_tung_sahur.glb',
     owned: false
   },
   militarykenny: {
@@ -9049,31 +9050,86 @@ const skinsData = {
     price: 1000,
     currency: 'diamonds',
     type: 'buy',
-    model: '/military_kenny.glb',
+    model: '/Cartman-Royale/military_kenny.glb',
     owned: false
   },
-  momo: { name: 'Momo Cartman', type: 'event', price: 100, model: './uploads/momo.glb', owned: false },
-  mummy: { name: 'Kenny Mummy', type: 'event', price: 300, model: './uploads/mummy.glb', owned: false },
-  dual: { name: 'Draclustan', type: 'event', price: 700, model: './uploads/dual.glb', owned: false },
-  nasty: { name: 'Nightmare Kenny', type: 'event', price: 1000, model: './uploads/Nasty.glb', owned: false },
-  sccary: { name: 'Ghostface Kyle', type: 'event', price: 5000, model: './uploads/sccary.glb', owned: false },
-  skeleton: { name: 'Skeleton', type: 'event', price: 6500, model: './uploads/skeleton.glb', owned: false },
-  pumpman: { name: 'Pumpman', type: 'event', price: 8000, model: './uploads/Pumpman.glb', owned: false },
-  kennytruth: { name: 'Kenny Wait Thats Not The Real You', type: 'secret', price: 0, model: './uploads/kenny_wait_thats_not_the_real_you.glb', owned: false },
-  catman: { name: 'Cart in the Man', type: 'event', price: 10000, model: './uploads/Catman.glb', owned: false },
+  momo: {
+    name: 'Momo Cartman',
+    type: 'event',
+    price: 100,
+    model: '/Cartman-Royale/uploads/momo.glb',
+    owned: false
+  },
+  mummy: {
+    name: 'Kenny Mummy',
+    type: 'event',
+    price: 300,
+    model: '/Cartman-Royale/uploads/mummy.glb',
+    owned: false
+  },
+  dual: {
+    name: 'Draclustan',
+    type: 'event',
+    price: 700,
+    model: '/Cartman-Royale/uploads/dual.glb',
+    owned: false
+  },
+  nasty: {
+    name: 'Nightmare Kenny',
+    type: 'event',
+    price: 1000,
+    model: '/Cartman-Royale/uploads/Nasty.glb',
+    owned: false
+  },
+  sccary: {
+    name: 'Ghostface Kyle',
+    type: 'event',
+    price: 5000,
+    model: '/Cartman-Royale/uploads/sccary.glb',
+    owned: false
+  },
+  skeleton: {
+    name: 'Skeleton',
+    type: 'event',
+    price: 6500,
+    model: '/Cartman-Royale/uploads/skeleton.glb',
+    owned: false
+  },
+  pumpman: {
+    name: 'Pumpman',
+    type: 'event',
+    price: 8000,
+    model: '/Cartman-Royale/uploads/Pumpman.glb',
+    owned: false
+  },
+  kennytruth: {
+    name: 'Kenny Wait Thats Not The Real You',
+    type: 'secret',
+    price: 0,
+    model: '/Cartman-Royale/uploads/kenny_wait_thats_not_the_real_you.glb',
+    owned: false
+  },
+  catman: {
+    name: 'Cart in the Man',
+    type: 'event',
+    price: 10000,
+    model: '/Cartman-Royale/uploads/Catman.glb',
+    owned: false
+  },
   cartmangif: {
     name: 'Cartman GIF (Secret)',
     price: 0,
     type: 'datafile',
     isGif: true,
-    idleGif: '/300px-Eric-cartman.png',
-    runGif: '/walking-afraid-eric-cartman.gif',
-    winGif: '/dancing-eric-cartman.gif',
-    stunGif: '/uploads/crying-eric-cartman.gif',
-    fallGif: '/uploads/throwing-tantrums-eric-cartman.gif',
+    idleGif: '/Cartman-Royale/300px-Eric-cartman.png',
+    runGif: '/Cartman-Royale/walking-afraid-eric-cartman.gif',
+    winGif: '/Cartman-Royale/dancing-eric-cartman.gif',
+    stunGif: '/Cartman-Royale/uploads/crying-eric-cartman.gif',
+    fallGif: '/Cartman-Royale/uploads/throwing-tantrums-eric-cartman.gif',
     owned: false
   }
 };
+
 
 async function savePlayerData() {
   if (!currencyInitialized) await initializeCurrency();
@@ -10386,52 +10442,52 @@ function startGame(mapType, isMultiplayer = false, options = {}) {
   
   // Select music based on map
   if (mapType === 'classic') {
-    bgMusic.src = '/Hit the Targets.wav';
-  } else if (mapType === 'icefactory') {
-    bgMusic.src = '/Dummy UNDERTALE OST.mp3';
-  } else if (mapType === 'shrinking') {
-    bgMusic.src = '/Undertale OST 080 - Finale.mp3';
-  } else if (mapType === 'synthetic') {
-    bgMusic.src = '/01 Frontend Music.mp3';
-  } else if (mapType === 'highway') {
-    bgMusic.src = '/67. SPAWN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox.mp3';
-  } else if (mapType === 'volcano') {
-    bgMusic.src = '/BURNING EYES.mp3';
-  } else if (mapType === 'hotpotato') {
-    bgMusic.src = '/Hit the Targets.wav';
-  } else if (mapType === 'kingofhill') {
-    bgMusic.src = '/Hit the Targets.wav';
-  } else if (mapType === 'sewer') {
-    bgMusic.src = '/uploads/1-10._Music_8__Uzhos_.mp3';
-  } else if (mapType === 'icepits') {
-    bgMusic.src = '/uploads/2-03_Break_the_Targets.mp3';
-  } else if (mapType === 'lockdown') {
-    bgMusic.src = '/Marble Garden Zone (Act 2) - Sonic the Hedgehog 3.mp3';
-  } else if (mapType === 'spikes') {
-    bgMusic.src = '/BURNING EYES.mp3';
-  } else if (mapType === 'infection') {
-    bgMusic.src = '/02 Coast Music.mp3';
-  } else if (mapType === 'royalty') {
-    bgMusic.src = '/Chess Type Beat (Slowed).mp3';
-  } else if (mapType === 'cityescape') {
-    bgMusic.src = '/Creative Exercise   Mario Paint Music Extended.mp3';
-  } else if (mapType === 'warehouse') {
-    bgMusic.src = '/uploads/18._Athletic__Hurry_.mp3';
-  } else if (mapType === 'bleeding') {
-    bgMusic.src = '/BURNING EYES.mp3';
-  } else if (mapType === 'fridge') {
-    bgMusic.src = '/20-Flying Battery 2.mp3';
-  } else if (mapType === 'pillar') {
-    bgMusic.src = '/03 Island Music.mp3';
-  } else if (mapType === 'ctf') {
-    bgMusic.src = '/THE WORLD REVOLVING.mp3';
-  } else if (mapType === 'soccer') {
-    bgMusic.src = '/05 Stadium Music.mp3';
-  } else if (mapType === 'dice') {
-    bgMusic.src = '/THE WORLD REVOLVING.mp3';
-  } else if (mapType === 'circuit') {
-    bgMusic.src = '/05 Stadium Music.mp3';
-  }
+  bgMusic.src = '/Cartman-Royale/Hit the Targets.wav';
+} else if (mapType === 'icefactory') {
+  bgMusic.src = '/Cartman-Royale/Dummy UNDERTALE OST.mp3';
+} else if (mapType === 'shrinking') {
+  bgMusic.src = '/Cartman-Royale/Undertale OST 080 - Finale.mp3';
+} else if (mapType === 'synthetic') {
+  bgMusic.src = '/Cartman-Royale/01 Frontend Music.mp3';
+} else if (mapType === 'highway') {
+  bgMusic.src = '/Cartman-Royale/67. SPAWN (DELTARUNE Chapter 3+4 Soundtrack) - Toby Fox.mp3';
+} else if (mapType === 'volcano') {
+  bgMusic.src = '/Cartman-Royale/BURNING EYES.mp3';
+} else if (mapType === 'hotpotato') {
+  bgMusic.src = '/Cartman-Royale/Hit the Targets.wav';
+} else if (mapType === 'kingofhill') {
+  bgMusic.src = '/Cartman-Royale/Hit the Targets.wav';
+} else if (mapType === 'sewer') {
+  bgMusic.src = '/Cartman-Royale/uploads/1-10._Music_8__Uzhos_.mp3';
+} else if (mapType === 'icepits') {
+  bgMusic.src = '/Cartman-Royale/uploads/2-03_Break_the_Targets.mp3';
+} else if (mapType === 'lockdown') {
+  bgMusic.src = '/Cartman-Royale/Marble Garden Zone (Act 2) - Sonic the Hedgehog 3.mp3';
+} else if (mapType === 'spikes') {
+  bgMusic.src = '/Cartman-Royale/BURNING EYES.mp3';
+} else if (mapType === 'infection') {
+  bgMusic.src = '/Cartman-Royale/02 Coast Music.mp3';
+} else if (mapType === 'royalty') {
+  bgMusic.src = '/Cartman-Royale/Chess Type Beat (Slowed).mp3';
+} else if (mapType === 'cityescape') {
+  bgMusic.src = '/Cartman-Royale/Creative Exercise   Mario Paint Music Extended.mp3';
+} else if (mapType === 'warehouse') {
+  bgMusic.src = '/Cartman-Royale/uploads/18._Athletic__Hurry_.mp3';
+} else if (mapType === 'bleeding') {
+  bgMusic.src = '/Cartman-Royale/BURNING EYES.mp3';
+} else if (mapType === 'fridge') {
+  bgMusic.src = '/Cartman-Royale/20-Flying Battery 2.mp3';
+} else if (mapType === 'pillar') {
+  bgMusic.src = '/Cartman-Royale/03 Island Music.mp3';
+} else if (mapType === 'ctf') {
+  bgMusic.src = '/Cartman-Royale/THE WORLD REVOLVING.mp3';
+} else if (mapType === 'soccer') {
+  bgMusic.src = '/Cartman-Royale/05 Stadium Music.mp3';
+} else if (mapType === 'dice') {
+  bgMusic.src = '/Cartman-Royale/THE WORLD REVOLVING.mp3';
+} else if (mapType === 'circuit') {
+  bgMusic.src = '/Cartman-Royale/05 Stadium Music.mp3';
+}
   
   bgMusic.volume = 0.3;
   bgMusic.load();
