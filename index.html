@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cartman Royale</title>
+  <link rel="stylesheet" href="roulette-map.css">
+  <link rel="stylesheet" href="credits.css">
+  <link rel="stylesheet" href="tenslant-id.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Space Mono', monospace;
+      overflow: hidden;
+      background: #000;
+    }
+    
+  #gameCanvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #rendererBadge {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      z-index: 1900;
+      display: none;
+      padding: 6px 10px;
+      color: rgba(255, 255, 255, 0.82);
+      background: rgba(5, 10, 18, 0.72);
+      border: 1px solid rgba(87, 232, 255, 0.5);
+      border-radius: 999px;
+      font: 10px 'Space Mono', monospace;
+      letter-spacing: 0.08em;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+    
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-size: 18px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      pointer-events: none;
+    }
+    
+    #score {
+      margin-bottom: 10px;
+    }
+
+    #diceHud {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 13px;
+      min-width: 238px;
+      color: #fff8ed;
+      background: rgba(12, 15, 31, 0.82);
+      border: 1px solid rgba(255, 207, 92, 0.72);
+      border-left: 4px solid #ffd15c;
+      border-radius: 5px;
+      box-shadow: 0 0 22px rgba(255, 176, 49, 0.16);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    #diceHud strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #ffd15c;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+    }
+
+    #raceHud {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      min-width: 220px;
+      color: #e9fbff;
+      background: rgba(3, 18, 28, 0.78);
+      border: 1px solid rgba(87, 232, 255, 0.7);
+      border-left: 4px solid #57e8ff;
+      border-radius: 4px;
+      box-shadow: 0 0 18px rgba(0, 224, 255, 0.18);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+    }
+
+    #raceHud strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #57e8ff;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+    }
+
+    #raceItem {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 7px 9px;
+      min-width: 170px;
+      color: #fff7cf;
+      background: rgba(255, 184, 48, 0.16);
+      border: 1px solid rgba(255, 211, 91, 0.72);
+      border-radius: 4px;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    
+    #timer {
+      margin-bottom: 10px;
+    }
+    
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      pointer-events: none;
+    }
+
+    #abilities {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      font-size: 14px;
+    }
+    
+    .ability {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 5px;
+      min-width: 150px;
+    }
+    
+    .ability.ready {
+      background: rgba(0,255,0,0.3);
+    }
+    
+    .ability.active {
+      background: rgba(255,215,0,0.5);
+      animation: pulse 0.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    #gameOver {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.9);
+      padding: 40px;
+      border-radius: 10px;
+      text-align: center;
+      color: white;
+      display: none;
+    }
+    
+    #gameOver h1 {
+      margin-bottom: 20px;
+      font-size: 32px;
+    }
+    
+    #gameOver p {
+      margin-bottom: 30px;
+      font-size: 20px;
+    }
+
+    #spectatorPanel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      width: min(360px, calc(100vw - 40px));
+      padding: 18px;
+      color: #f7fbff;
+      background: rgba(4, 12, 22, 0.9);
+      border: 1px solid rgba(87, 232, 255, 0.65);
+      border-left: 4px solid #57e8ff;
+      border-radius: 12px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.38), 0 0 24px rgba(87, 232, 255, 0.12);
+      font-family: 'Space Mono', monospace;
+      backdrop-filter: blur(12px);
+    }
+
+    #spectatorPanel .spectatorKicker {
+      color: #57e8ff;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.16em;
+    }
+
+    #spectatorPanel h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    #spectatorPanel p {
+      margin: 0;
+      color: rgba(247, 251, 255, 0.72);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    #spectatorPanel label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: rgba(247, 251, 255, 0.72);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    #spectatorPanel select,
+    #spectatorPanel input,
+    #spectatorPanel button {
+      width: 100%;
+      min-height: 40px;
+      padding: 9px 11px;
+      border: 1px solid rgba(153, 190, 225, 0.3);
+      border-radius: 7px;
+      color: #f7fbff;
+      background: rgba(255, 255, 255, 0.09);
+      font: 13px 'Space Mono', monospace;
+    }
+
+    #spectatorPanel select option {
+      color: #0a1220;
+    }
+
+    #spectatorPanel button {
+      border-color: rgba(255, 214, 90, 0.7);
+      color: #191305;
+      background: #ffd65a;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    #spectatorPanel button:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    #spectatorPanel button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .spectatorWallet {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border: 1px solid rgba(153, 190, 225, 0.16);
+      border-radius: 7px;
+      color: rgba(247, 251, 255, 0.8);
+      font-size: 11px;
+    }
+
+    .spectatorWallet strong {
+      color: #fff5cb;
+    }
+
+    #spectatorBetList {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 100px;
+      overflow-y: auto;
+      color: rgba(247, 251, 255, 0.8);
+      font-size: 11px;
+    }
+
+    #spectatorBetStatus {
+      min-height: 16px;
+      color: #9defff;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    
+    #restartBtn {
+      background: white;
+      color: black;
+      border: none;
+      padding: 15px 40px;
+      font-size: 18px;
+      font-family: 'Space Mono', monospace;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: transform 0.1s;
+    }
+    
+    #restartBtn:active {
+      transform: scale(0.95);
+    }
+    
+    #joystickZone {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 150px;
+      height: 150px;
+      display: none;
+    }
+
+    #cameraTurnControls {
+      position: fixed;
+      right: 18px;
+      bottom: 78px;
+      z-index: 1800;
+      display: none;
+      gap: 10px;
+    }
+
+    #cameraTurnControls button {
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(3, 18, 28, 0.82);
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.34);
+      font: bold 22px 'Space Mono', monospace;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #cameraTurnControls button:active {
+      transform: scale(0.94);
+      background: rgba(87, 232, 255, 0.42);
+    }
+
+    #mobileFullscreenBtn {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 1800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(3, 18, 28, 0.82);
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.34);
+      font: bold 12px 'Space Mono', monospace;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      touch-action: manipulation;
+      backdrop-filter: blur(8px);
+    }
+
+    #mobileFullscreenBtn:active {
+      transform: scale(0.96);
+    }
+
+    @media (pointer: coarse), (max-width: 600px) {
+      #mobileFullscreenBtn {
+        display: flex;
+      }
+
+      #cameraTurnControls {
+        display: flex;
+      }
+
+      #debugCookiesBtn,
+      #openDataEnvBtn {
+        display: none !important;
+      }
+    }
+
+    #halloweenCountdown {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      z-index: 1200;
+      display: grid;
+      gap: 8px;
+      width: min(320px, calc(100vw - 32px));
+      padding: 13px 16px 15px;
+      color: #fff8ed;
+      background:
+        linear-gradient(135deg, rgba(42, 12, 55, 0.94), rgba(14, 8, 25, 0.94)),
+        radial-gradient(circle at top right, rgba(255, 122, 28, 0.3), transparent 58%);
+      border: 1px solid rgba(255, 139, 48, 0.72);
+      border-radius: 10px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), 0 0 22px rgba(255, 102, 0, 0.18);
+      font-family: 'Space Mono', monospace;
+      text-align: center;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    #halloweenCountdown .countdownKicker {
+      color: #ff9f43;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 0.18em;
+    }
+
+    #halloweenCountdown .countdownTitle {
+      font-size: 15px;
+      font-weight: bold;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #halloweenCountdown .countdownDate {
+      color: rgba(255, 248, 237, 0.68);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+
+    #countdownValue {
+      color: #ffffff;
+      font-size: clamp(16px, 3.5vw, 22px);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 12px rgba(255, 139, 48, 0.45);
+    }
+
+    #halloweenCountdown.isLive #countdownValue {
+      color: #ffb45e;
+    }
+
+    @media (max-width: 600px) {
+      #halloweenCountdown {
+        top: 12px;
+        padding: 10px 12px 12px;
+      }
+
+      #halloweenCountdown .countdownTitle {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <link rel="stylesheet" href="halloween.css">
+  <link rel="stylesheet" href="trick-hud.css">
+  <canvas id="gameCanvas"></canvas>
+  <div id="boostInGame" hidden aria-live="polite"></div>
+  <button id="hotPotatoPassBtn" type="button" hidden disabled>Pass the bomb · F</button>
+  <div id="trickHud" hidden><div id="trickRoundStatus"></div><div id="trickRoundHint"></div><div id="trickActions" hidden><button id="trickFight" type="button">Fight for +3 Candy</button><button id="trickPass" type="button">Keep your candy</button></div></div>
+  <div id="rendererBadge" aria-live="polite">2D COMPATIBILITY MODE · WEBGL OFF</div>
+  
+  <div id="ui">
+    <div id="score">Knocked Off: 0</div>
+    <div id="diceHud" aria-live="polite">
+      <strong>DICE HAZARD MAP</strong>
+      <div id="diceFaceStatus">Face 1 · Spike Grid</div>
+      <div id="diceRollStatus">Next flip in 7.0s</div>
+    </div>
+    <div id="raceHud">
+      <strong>GIANT CIRCUIT</strong>
+      <div id="raceLap">Lap 1 / 3</div>
+      <div id="raceCheckpoint">Checkpoint 1 / 3</div>
+      <div id="racePosition">Position 1 / 13</div>
+      <div id="raceTimer">Time 0:00.0</div>
+      <div id="raceItem">🎁 Item box: drive through one</div>
+    </div>
+  </div>
+  
+  <div id="controls"></div>
+  <div id="abilities">
+    <div class="ability" id="speedBoost">
+      <div>🚀 Speed Boost</div>
+      <div id="speedCooldown">Find Pickup</div>
+    </div>
+    <div class="ability" id="powerPunch">
+      <div>👊 Power Punch</div>
+      <div id="punchCooldown">Find Pickup</div>
+    </div>
+  </div>
+  
+  <div id="gameOver">
+    <h1>Game Over!</h1>
+    <p id="finalScore"></p>
+    <button id="restartBtn">Play Again</button>
+  </div>
+
+  <div id="spectatorPanel" aria-live="polite">
+    <div class="spectatorKicker">ELIMINATED · LIVE ARENA</div>
+    <h2>Pick a winner</h2>
+    <p>You’re out, but the match is still running. Watch a rival and place a wager before the final knockout.</p>
+    <div class="spectatorWallet">
+      <span>💰 Dollahs <strong id="spectatorCreditsDisplay">0</strong></span>
+      <span>💎 Diamonds <strong id="spectatorDiamondsDisplay">0</strong></span>
+    </div>
+    <label>
+      Watch / bet on
+      <select id="spectatorWinnerSelect"></select>
+    </label>
+    <label>
+      Currency
+      <select id="spectatorCurrencySelect">
+        <option value="credits">💰 Dollahs</option>
+        <option value="diamonds">💎 Diamonds</option>
+      </select>
+    </label>
+    <label>
+      Wager amount
+      <input id="spectatorBetAmount" type="number" min="1" step="1" placeholder="Enter amount">
+    </label>
+    <button id="placeSpectatorBet" type="button">Place bet · 2× payout</button>
+    <div id="spectatorBetList"></div>
+    <div id="spectatorBetStatus"></div>
+  </div>
+  
+  <div id="victory" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; overflow: hidden;">
+    <canvas id="victoryCanvas" style="display: block; width: 100%; height: 100%;"></canvas>
+    <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);">
+      <button id="victoryBtn" style="background: white; color: black; border: none; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Back to Menu</button>
+    </div>
+  </div>
+  
+  <aside id="tenslantPanel" aria-label="Tenslant ID account"><strong>Cartman Royale account</strong><p id="tenslantStatus">Checking account connection…</p><p id="tenslantSync">Local progress is available offline.</p><div id="tenslantActions"></div><div id="tenslantConflict"></div><p id="tenslantMessage" role="status" aria-live="polite"></p></aside>
+  <div id="modeSelect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <h1 style="font-size: 48px; margin-bottom: 40px;">Cartman Royale</h1>
+    <button class="modeBtn" id="singlePlayerBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Single Player (vs CPU)</button>
+    <button class="modeBtn" id="multiplayerBtn" disabled title="Online multiplayer is temporarily unavailable during the account-service migration." style="background: #FFD700; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Online Multiplayer (unavailable)</button>
+    <button class="modeBtn" id="trickModeBtn" type="button">🏚 Trick or Treat · 3D</button>
+    <button class="modeBtn" id="halloweenOpen" type="button">🎃 Halloween Event · <span id="menuCandy">50</span> Candy</button>
+    <button class="modeBtn" id="skinsBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; transition: transform 0.1s;">Skins Shop</button>
+    <button class="modeBtn" id="creditsOpen" type="button" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; transition: transform 0.1s;">Credits</button>
+  </div>
+
+  <section id="creditsPanel" class="creditsPanel" role="dialog" aria-modal="true" aria-labelledby="creditsTitle" aria-hidden="true" hidden>
+    <div class="creditsShell">
+      <header class="creditsHeader">
+        <div><span class="creditsEyebrow">CARTMAN ROYALE / CONTRIBUTORS</span><h2 id="creditsTitle">Credits</h2></div>
+        <button id="creditsClose" type="button" aria-label="Close credits">Back</button>
+      </header>
+      <div class="creditsGrid">
+        <section class="creditGroup"><h3>Thumbnails</h3><p>Tenslant &amp; Bnolb</p></section>
+        <section class="creditGroup"><h3>Main Development</h3><p>Claude · Tenslant</p></section>
+        <section class="creditGroup"><h3>Mirror Porting</h3><p>Tenslant</p></section>
+        <section class="creditGroup"><h3>Creative Directors</h3><p>snowymoon3393412 &amp; Tenslant <span class="creditNote">In person</span></p></section>
+        <section class="creditGroup"><h3>Tenslant ID</h3><p>Tenslant</p></section>
+        <section class="creditGroup creditGroupWide"><h3>Audio</h3><p><strong>Toby Fox</strong> (UNDERTALE / DELTARUNE) · <strong>SEGA Sound Team</strong> (Sonic 3 &amp; Knuckles) · <strong>Shinobu Tanaka</strong> (Mario Kart DS) · <strong>Koji Kondo</strong> (Super Mario World) · <strong>Hirokazu Ando, Shogo Sakai &amp; Tadashi Ikegami</strong> (Super Smash Bros. Melee) · <strong>Nintendo</strong> (Wii Party) · <strong>Superstar 64</strong> (Mario Paint) · <strong>Jesús Mus1c</strong> · <strong>That Boy Franco &amp; Francis Akwuba-Charles</strong> · <strong>Alone Coder</strong> · <strong>bart</strong>. Sound effects: Freesound community, ragecore29, tithuh, universfield, sub_clair, u_xjrmmgxfru, and Voicemod / maltigi.</p></section>
+        <section class="creditGroup"><h3>Testers</h3><p>IRL people</p></section>
+        <section class="creditGroup"><h3>Models</h3><p>Sonic Adventure 2 · South Park (PSX &amp; N64) · SlendyTubbies · Stick of Truth · Roblox · PAWS · AI (Tung Tung Tung Sahur)</p></section>
+        <section class="creditGroup creditGroupWide"><h3>Textures</h3><p>Cat and the Hat · Sonic Adventure 2 · South Park (PSX &amp; N64) · Adobe Stock · Dreamstime · SlendyTubbies · Museum site (name TBD)</p></section>
+        <section class="creditGroup creditGroupWide creditPlayers"><h3>Players</h3><p>Loyal or not, our players.</p></section>
+      </div>
+    </div>
+  </section>
+  
+  <div id="gameModeSelect" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <h1 style="font-size: 48px; margin-bottom: 40px;">Select Game Mode</h1>
+    <button class="gameModeBtn" id="normalModeBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Normal Mode</button>
+    <button class="gameModeBtn" id="stockModeBtn" style="background: #FFD700; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Stock Mode (3 Lives)</button>
+    <button class="gameModeBtn" id="teamsModeBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Teams Mode</button>
+    <button class="gameModeBtn" id="backFromGameModeBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; transition: transform 0.1s;">Back</button>
+  </div>
+  
+  <div id="graphicsSettings" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; color: white; font-family: 'Space Mono', monospace; overflow-y: auto; padding: 40px;">
+    <h1 style="font-size: 48px; margin-bottom: 20px;">Graphics Settings</h1>
+    <div style="font-size: 18px; margin-bottom: 30px; color: #ffff00;">⚠️ Some settings require restart to take effect</div>
+    
+    <div style="width: 100%; max-width: 800px; margin-bottom: 40px;">
+      <h2 style="font-size: 32px; margin-bottom: 20px;">Quality Presets</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px;">
+        <button class="qualityPreset" data-preset="ultra-low" style="background: #ff4444; color: white; border: none; padding: 20px; font-size: 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">Ultra Low (Potato)</button>
+        <button class="qualityPreset" data-preset="low" style="background: #ff8844; color: white; border: none; padding: 20px; font-size: 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">Low</button>
+        <button class="qualityPreset" data-preset="medium" style="background: #44ff44; color: black; border: none; padding: 20px; font-size: 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">Medium</button>
+        <button class="qualityPreset" data-preset="high" style="background: #4444ff; color: white; border: none; padding: 20px; font-size: 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">High</button>
+      </div>
+      
+      <h2 style="font-size: 32px; margin-bottom: 20px;">Individual Settings</h2>
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <label style="font-size: 20px; margin-bottom: 10px; display: block;">Renderer</label>
+          <select id="rendererMode" style="width: 100%; padding: 10px; font-size: 18px; font-family: 'Space Mono', monospace; background: white; color: black; border-radius: 5px;">
+            <option value="auto">Auto (WebGL, then 2D fallback)</option>
+            <option value="2d">Compatibility 2D (pseudo-3D)</option>
+            <option value="webgl">WebGL 3D</option>
+          </select>
+          <div style="margin-top: 8px; color: rgba(255,255,255,0.68); font-size: 13px; line-height: 1.5;">
+            Compatibility 2D keeps the angled 3D look without requiring WebGL. Reload after changing it.
+          </div>
+        </div>
+
+        <label style="display: flex; align-items: center; gap: 15px; font-size: 20px;">
+          <input type="checkbox" id="shadowsToggle" style="width: 24px; height: 24px; cursor: pointer;">
+          <span>Shadows (High Performance Impact)</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 15px; font-size: 20px;">
+          <input type="checkbox" id="fogToggle" style="width: 24px; height: 24px; cursor: pointer;">
+          <span>Fog Effects</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 15px; font-size: 20px;">
+          <input type="checkbox" id="aaToggle" style="width: 24px; height: 24px; cursor: pointer;">
+          <span>Antialiasing (Requires Restart)</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 15px; font-size: 20px;">
+          <input type="checkbox" id="particlesToggle" style="width: 24px; height: 24px; cursor: pointer;">
+          <span>Particle Effects</span>
+        </label>
+        
+        <div>
+          <label style="font-size: 20px; margin-bottom: 10px; display: block;">Shadow Quality</label>
+          <select id="shadowQuality" style="width: 100%; padding: 10px; font-size: 18px; font-family: 'Space Mono', monospace; background: white; color: black; border-radius: 5px;">
+            <option value="256">Ultra Low (256)</option>
+            <option value="512">Low (512)</option>
+            <option value="1024">Medium (1024)</option>
+            <option value="2048">High (2048)</option>
+            <option value="4096">Ultra (4096)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label style="font-size: 20px; margin-bottom: 10px; display: block;">Max Enemies (Lower = Better FPS)</label>
+          <select id="maxEnemies" style="width: 100%; padding: 10px; font-size: 18px; font-family: 'Space Mono', monospace; background: white; color: black; border-radius: 5px;">
+            <option value="2">2 Enemies</option>
+            <option value="4">4 Enemies</option>
+            <option value="6">6 Enemies</option>
+            <option value="8">8 Enemies</option>
+            <option value="12">12 Enemies (Default)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label style="font-size: 20px; margin-bottom: 10px; display: block;">Render Distance</label>
+          <select id="renderDistance" style="width: 100%; padding: 10px; font-size: 18px; font-family: 'Space Mono', monospace; background: white; color: black; border-radius: 5px;">
+            <option value="20">Very Close (20)</option>
+            <option value="30">Close (30)</option>
+            <option value="50">Medium (50)</option>
+            <option value="80">Far (80)</option>
+            <option value="100">Very Far (100)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+        <h3 style="font-size: 24px; margin-bottom: 10px;">Current FPS</h3>
+        <div id="fpsCounter" style="font-size: 32px; color: #00ff00;">60 FPS</div>
+      </div>
+    </div>
+    
+    <button id="backFromGraphicsBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Back</button>
+  </div>
+  
+  <div id="skinsShop" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; color: white; font-family: 'Space Mono', monospace; overflow-y: auto; padding: 40px;">
+    <h1 style="font-size: 48px; margin-bottom: 20px;">Skins Shop</h1>
+    <div style="font-size: 24px; margin-bottom: 20px;">
+      Dollahs: <span id="shopCreditsDisplay">0</span> | 
+      💎 Diamonds: <span id="shopDiamondsDisplay">0</span>
+    </div>
+    <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+      <button id="openPrizeWheelBtn" style="background: #FF69B4; color: black; border: none; padding: 15px 30px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">🎡 Prize Wheel (50 Dollahs)</button>
+      <button id="openSlotsBtn" style="background: #9370DB; color: white; border: none; padding: 15px 30px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">🎰 Slots (Free)</button>
+      <button id="openDoyleSlotsBtn" style="background: #FF4500; color: white; border: none; padding: 15px 30px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">🎰 Doyle Slots (10 Dollahs or 50💎)</button>
+      <button id="openCurrencyBtn" style="background: #FFD700; color: black; border: none; padding: 15px 30px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold;">💱 Currency</button>
+    </div>
+    <div id="skinsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; width: 100%; max-width: 1400px; margin-bottom: 40px;"></div>
+    <button id="backFromSkinsBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Back</button>
+  </div>
+  
+  <div id="prizeWheel" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: white; font-family: 'Space Mono', monospace;">
+    <h2 style="font-size: 36px; margin-bottom: 30px;">Prize Wheel - 50 Dollahs</h2>
+    <canvas id="wheelCanvas" width="500" height="500" style="margin-bottom: 30px; border: 4px solid white; border-radius: 50%;"></canvas>
+    <button id="spinWheelBtn" style="background: #FFD700; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; margin-bottom: 20px;">Spin (50 Dollahs)</button>
+    <button id="closeWheelBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Close</button>
+  </div>
+  
+  <div id="doyleSlots" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: white; font-family: 'Space Mono', monospace;">
+    <h2 style="font-size: 36px; margin-bottom: 30px;">Doyle Slots</h2>
+    <p style="font-size: 20px; margin-bottom: 20px;">Cost: Tip 10 dollahs or 50 💎 Diamonds</p>
+    <div style="display: flex; gap: 20px; margin-bottom: 40px; font-size: 72px;">
+      <div class="slotReel" style="width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 3px solid white;">🍒</div>
+      <div class="slotReel" style="width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 3px solid white;">🍋</div>
+      <div class="slotReel" style="width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 3px solid white;">⭐</div>
+    </div>
+    <div id="slotResult" style="font-size: 24px; margin-bottom: 30px; height: 30px;"></div>
+    <button id="pullSlotBtn" style="background: #FF4500; color: white; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; margin-bottom: 20px;">Pull Lever</button>
+    <button id="closeSlotsBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Close</button>
+  </div>
+  
+  <div id="multiplayerMenu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <h1 style="font-size: 48px; margin-bottom: 40px;">Multiplayer</h1>
+    <button class="multiplayerMenuBtn" id="quickPlayBtn" style="background: #00ff00; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Quick Play</button>
+    <button class="multiplayerMenuBtn" id="hostGameBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Host Game</button>
+    <button class="multiplayerMenuBtn" id="joinGameBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Join Game</button>
+    <button class="multiplayerMenuBtn" id="backFromMultiplayerBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; transition: transform 0.1s;">Back</button>
+  </div>
+  
+  <div id="hostGameMenu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Space Mono', monospace;">
+    <h1 style="font-size: 48px; margin-bottom: 40px;">Host Game</h1>
+    <div style="margin-bottom: 20px;">
+      <label style="font-size: 20px; margin-bottom: 10px; display: block;">Game Type:</label>
+      <select id="hostGameType" style="background: white; color: black; padding: 10px 20px; font-size: 18px; font-family: 'Space Mono', monospace; border-radius: 5px; cursor: pointer; min-width: 300px;">
+        <option value="public">Public</option>
+        <option value="private">Private (Password Required)</option>
+      </select>
+    </div>
+    <div id="hostPasswordDiv" style="margin-bottom: 20px; display: none;">
+      <label style="font-size: 20px; margin-bottom: 10px; display: block;">Password:</label>
+      <input type="text" id="hostPassword" placeholder="Enter password..." style="background: white; color: black; padding: 10px 20px; font-size: 18px; font-family: 'Space Mono', monospace; border-radius: 5px; border: none; min-width: 300px;">
+    </div>
+    <button id="createHostBtn" style="background: #00ff00; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold;">Create Game</button>
+    <button id="backFromHostBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Back</button>
+  </div>
+  
+  <div id="joinGameMenu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Space Mono', monospace;">
+    <h1 style="font-size: 48px; margin-bottom: 40px;">Join Game</h1>
+    <div id="gamesList" style="margin-bottom: 20px; max-height: 400px; overflow-y: auto; min-width: 500px;">
+      <!-- Games will be listed here -->
+    </div>
+    <button id="refreshGamesBtn" style="background: white; color: black; border: none; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px;">Refresh</button>
+    <button id="backFromJoinBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Back</button>
+  </div>
+  
+  <div id="lobbyMenu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Space Mono', monospace;">
+    <h1 style="font-size: 48px; margin-bottom: 20px;">Game Lobby</h1>
+    <div id="lobbyInfo" style="font-size: 20px; margin-bottom: 20px; text-align: center;">
+      <p id="lobbyGameType"></p>
+      <p id="lobbyMap"></p>
+    </div>
+    <div id="lobbyPlayers" style="margin-bottom: 30px; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; min-width: 400px;">
+      <h2 style="font-size: 24px; margin-bottom: 15px;">Players:</h2>
+      <div id="playersList"></div>
+    </div>
+    <div id="hostControls" style="display: none; margin-bottom: 20px;">
+      <button id="startGameBtn" style="background: #00ff00; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; margin-right: 10px;">Start Game</button>
+    </div>
+    <button id="leaveLobbyBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Leave Lobby</button>
+  </div>
+  
+  <div id="passwordPrompt" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Space Mono', monospace; z-index: 2000;">
+    <h2 style="font-size: 32px; margin-bottom: 20px;">Enter Password</h2>
+    <input type="password" id="joinPassword" placeholder="Password..." style="background: white; color: black; padding: 15px 30px; font-size: 20px; font-family: 'Space Mono', monospace; border-radius: 5px; border: none; margin-bottom: 20px; min-width: 300px;">
+    <div>
+      <button id="submitPasswordBtn" style="background: #00ff00; color: black; border: none; padding: 15px 40px; font-size: 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; margin-right: 10px;">Join</button>
+      <button id="cancelPasswordBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Cancel</button>
+    </div>
+  </div>
+  
+  <div id="menu" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white;">
+    <h1 style="font-size: 48px; margin-bottom: 40px;">Cartman Royale</h1>
+    <button class="menuBtn" id="trickMapBtn" style="background: #dd763c; color: #210f20; border: 0; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px;">Trick or Treat · 3D</button>
+    <button class="menuBtn" id="classicBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Classic Arena</button>
+    <button class="menuBtn" id="sewerBtn" style="background: #94ad38; color: #10150c; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Sewer Surge</button>
+    <button class="menuBtn" id="icePitsBtn" style="background: #a9edff; color: #071923; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Icefall Pits</button>
+    <button class="menuBtn" id="iceFactoryBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Ice Factory</button>
+    <button class="menuBtn" id="shrinkingBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Shrinking Platform</button>
+    <button class="menuBtn" id="syntheticBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Synthetic</button>
+    <button class="menuBtn" id="highwayBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Highway</button>
+    <button class="menuBtn" id="volcanoBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Volcano</button>
+    <button class="menuBtn" id="hotPotatoBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Hot Potato</button>
+
+    <button class="menuBtn" id="lockdownBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Rosenthal's Basement</button>
+    <button class="menuBtn" id="endlessLockdownBtn" style="background: #ffe7a3; color: #2c1a00; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Endless Rosenthal's Basement</button>
+    <button class="menuBtn" id="spikesBtn" style="background: #ff5555; color: #210000; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Spikes</button>
+    <button class="menuBtn" id="infectionBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Infection</button>
+    <button class="menuBtn" id="teamsBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Teams</button>
+    <button class="menuBtn" id="royaltyBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Royalty</button>
+    <button class="menuBtn" id="cityEscapeBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">City Escape</button>
+    <button class="menuBtn" id="circuitBtn" style="background: #57e8ff; color: #03121c; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Giant Circuit — 3 Laps</button>
+    <button class="menuBtn" id="bleedingBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Bleeding</button>
+    <button class="menuBtn" id="fridgeBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Fridge</button>
+    <button class="menuBtn" id="pillarBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Pillar</button>
+    <button class="menuBtn" id="ctfBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Capture the Flag</button>
+    <button class="menuBtn" id="soccerBtn" style="background: white; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; transition: transform 0.1s;">Soccer</button>
+    <button class="menuBtn" id="diceBtn" style="background: #ffd15c; color: #17121d; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Dice Hazard</button>
+    <button class="menuBtn" id="rouletteMapBtn" style="background: #ff4b35; color: white; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; margin-bottom: 20px; font-weight: bold; transition: transform 0.1s;">Cartman Roulette</button>
+    <button class="menuBtn" id="careerBtn" style="background: #FFD700; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; transition: transform 0.1s;">Career Mode</button>
+  </div>
+
+  <section id="rouletteMap" aria-label="Cartman Roulette map" hidden>
+    <canvas id="rouletteMapCanvas"></canvas>
+    <div class="rouletteMapTopHud">
+      <div class="rouletteMapTitle">
+        <span>CARTMAN ROYALE / PARTY ROOM</span>
+        <h1>CARTMAN ROULETTE</h1>
+      </div>
+      <div class="rouletteMapTurn" id="rouletteMapTurn">YOUR TURN</div>
+      <button id="rouletteMapExit" type="button">BACK TO MAPS</button>
+    </div>
+
+    <div class="rouletteMapBottomHud">
+      <div class="rouletteMapFeed" id="rouletteMapFeed" aria-live="polite">The gun is waiting on the birthday desk.</div>
+      <div class="rouletteMapActions" aria-label="Roulette controls">
+        <button data-roulette-action="shoot" type="button"><b>SHOOT IT</b><small>your odds</small></button>
+        <button data-roulette-action="reroll" type="button"><b>REROLL</b><small>shift odds</small></button>
+        <button data-roulette-action="opponent" type="button"><b>SHOOT OPPONENT</b><small>recoil</small></button>
+        <button data-roulette-action="eat" type="button"><b>EAT IT</b><small>chaos</small></button>
+        <button data-roulette-action="spam" type="button"><b>SPAM IT</b><small>move danger</small></button>
+      </div>
+    </div>
+
+    <div id="rouletteMapResult" class="rouletteMapResult" hidden>
+      <div>
+        <div class="rouletteMapResultKicker">PARTY ROOM RESULT</div>
+        <h2 id="rouletteMapResultTitle">YOU WIN</h2>
+        <p id="rouletteMapResultText">The desk is a disaster.</p>
+        <button id="rouletteMapAgain" type="button">PLAY AGAIN</button>
+        <button id="rouletteMapResultExit" type="button">BACK TO MAPS</button>
+      </div>
+    </div>
+  </section>
+  
+  <div id="currencyExchange" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: white; font-family: 'Space Mono', monospace;">
+    <h2 style="font-size: 36px; margin-bottom: 30px;">Currency Exchange</h2>
+    <p style="font-size: 20px; margin-bottom: 20px;">100 Dollahs = 1 💎 Diamond</p>
+    <div style="font-size: 24px; margin-bottom: 30px;">
+      <p>Dollahs: <span id="exchangeCreditsDisplay">0</span></p>
+      <p>💎 Diamonds: <span id="exchangeDiamondsDisplay">0</span></p>
+    </div>
+    <div style="margin-bottom: 30px;">
+      <input type="number" id="creditsToConvert" placeholder="Dollahs to convert..." min="100" step="100" style="background: white; color: black; padding: 15px; font-size: 18px; font-family: 'Space Mono', monospace; border-radius: 5px; border: none; margin-bottom: 20px; width: 300px;">
+    </div>
+    <button id="convertBtn" style="background: #FFD700; color: black; border: none; padding: 20px 60px; font-size: 24px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; font-weight: bold; margin-bottom: 20px;">Convert to Diamonds</button>
+    <button id="closeCurrencyBtn" style="background: rgba(255,255,255,0.3); color: white; border: 2px solid white; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Close</button>
+  </div>
+  
+  <div id="joystickZone"></div>
+  <div id="cameraTurnControls" aria-label="Camera rotation">
+    <button id="cameraTurnLeft" type="button" aria-label="Turn camera left">◀</button>
+    <button id="cameraTurnRight" type="button" aria-label="Turn camera right">▶</button>
+  </div>
+  <button id="mobileFullscreenBtn" type="button" aria-label="Enter fullscreen">⛶ Fullscreen</button>
+  
+  <button id="debugCookiesBtn" style="position: fixed; bottom: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; padding: 10px 20px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; z-index: 1000;">Debug Cookies</button>
+  <button id="openDataEnvBtn" style="position: fixed; bottom: 20px; right: 150px; background: rgba(255,215,0,0.12); color: #FFD700; border: 2px solid #FFD700; padding: 10px 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px; z-index: 1000;">Open data.env</button>
+  
+  <div id="matchmaking" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: 'Space Mono', monospace; z-index: 1001;">
+    <h1 style="font-size: 48px; margin-bottom: 20px;">Finding Players...</h1>
+    <p id="matchmakingTimer" style="font-size: 32px; margin-bottom: 30px;">30s</p>
+    <p id="playersFound" style="font-size: 24px; margin-bottom: 40px;">Players found: 0</p>
+    <button id="cancelMatchmaking" style="background: white; color: black; border: none; padding: 15px 40px; font-size: 18px; font-family: 'Space Mono', monospace; cursor: pointer; border-radius: 5px;">Cancel</button>
+  </div>
+
+  <section id="halloweenPanel" class="halloweenScreen" hidden aria-label="Halloween event">
+    <div class="halloweenShell">
+      <header class="halloweenHeader"><span class="eventEyebrow">CARTMAN ROYALE · LIMITED EVENT</span><button id="halloweenClose" type="button" aria-label="Close event">✕</button></header>
+      <div class="eventHero"><div><h2>Night of the<br><em>Cartmans.</em></h2><p>Hit. Survive. Trick or treat. Claim your nightmares.</p></div><div class="eventBalance"><span>YOUR STASH</span><strong>🍬 <span id="candyCount">50</span></strong><small id="eventTime"></small></div></div>
+      <div class="eventTabs"><button class="selected" data-tab="pass">Battle pass</button><button data-tab="shop">Candy shop</button><button data-tab="treat">Trick or treat</button></div>
+      <div id="eventPass" class="eventPage"><div class="eventStatus" id="boostStatus"></div><div id="boostSchedule" class="boostSchedule"></div><p class="eventNotice">Hit +1 · Elimination +1.5 · Win +10 · Trick or Treat: hit +3, kill +10, win +50. Late-start gift: 50 Candy. Boosts stack.</p><div class="saveTools"><div><strong>Full game save</strong><span>Download it, store it in Drive, then load it on another computer. Includes local progress, unlocks, event progress, currency and settings. Tenslant ID cloud saves are separate from this portable backup.</span></div><div class="saveActions"><button id="downloadSave" type="button">Download save file</button><button id="loadSave" type="button">Load save file</button><input id="saveFile" type="file" accept=".crsave,application/json" hidden></div><p id="saveStatus" class="saveStatus" aria-live="polite"></p></div><div id="passTrack" class="passTrack"></div></div>
+      <div id="eventShop" class="eventPage" hidden><div id="eventOffers" class="eventOffers"></div><p id="purchaseMessage" class="eventNotice" aria-live="polite">Event purchases use the existing diamond balance.</p></div>
+      <div id="eventTreat" class="eventPage" hidden><p class="eventNotice">Explore ten houses in the 3D neighborhood. Walk to a door to choose it. One more house becomes a killer house each round. Up to five Cartmans may enter a house; only one in the final rounds. Fight occupants for bonus Candy, or stay safe. Last Cartman standing wins 50 Candy.</p><button id="startTreat" type="button" class="eventAction">Enter the neighborhood →</button></div>
+    </div>
+  </section>
+  <aside id="halloweenCountdown" aria-live="polite" aria-label="Countdown to the end of the Halloween event">
+    <div class="countdownKicker">🎃 EVENT LIVE</div>
+    <div class="countdownTitle">Halloween Event</div>
+    <div class="countdownDate">Ends November 10, 2026 · 11:59 PM Eastern</div>
+    <div id="countdownValue">Calculating...</div>
+  </aside>
+  
+  <audio id="bgMusic" loop preload="none">
+    <source src="/Hit the Targets.wav" type="audio/wav">
+  </audio>
+  <audio id="menuMusic" loop preload="none">
+    <source src="/1-08. Unused Menu.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="treatMusic" loop preload="none">
+    <source src="/uploads/13._Knightmare-athon.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="victoryMusic" loop preload="none">
+    <source src="/Shock The World (Reverb & Slowed-Melody Version).mp3" type="audio/mpeg">
+  </audio>
+  <audio id="storyMusic" preload="none">
+    <source src="/thepenis.flac" type="audio/flac">
+  </audio>
+  <audio id="punchSound" src="/ahh_gLSTOu4.mp3" preload="none"></audio>
+  <audio id="fallSound" src="/screaming-emoji-meme.mp3" preload="none"></audio>
+  <audio id="hitSound1" src="/36. Punch.mp3" preload="none"></audio>
+  <audio id="hitSound2" src="/punch.mp3" preload="none"></audio>
+  <audio id="hitSound3" src="/SmallPunchTwo.wav" preload="none"></audio>
+  
+  <script type="module" src="halloween.js"></script>
+  <script type="module" src="countdown.js"></script>
+  <script type="module" src="readme-loader.js"></script>
+  <script type="module" src="credits.js"></script>
+  <script type="module" src="tenslant-id.js"></script>
+  <script type="module" src="game.js"></script>
+  <script type="module" src="roulette-map.js"></script>
+</body>
+</html>
